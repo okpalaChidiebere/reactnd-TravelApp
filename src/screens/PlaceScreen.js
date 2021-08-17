@@ -5,10 +5,11 @@ import {
     Text,
     ImageBackground,
     Image,
+    Platform,
 } from "react-native"
 import SlidingUpPanel from "rn-sliding-up-panel"
 import MapView, { PROVIDER_GOOGLE, Marker } from "react-native-maps"
-import { HeaderBar, TextIconButton } from "../components"
+import { HeaderBar, TextIconButton, Rating, TextButton } from "../components"
 import { icons, mapStyle } from "../utils"
 import { Colors, SIZES, FONTS, } from "../values"
 
@@ -161,6 +162,63 @@ export function PlaceScreen({ route, navigation }){
                                 top: SIZES.padding * 2,
                             }}
                         />
+
+                        {/* Map Footer Section for the Hotel Details for a particular place */}
+                        {selectedHotel && ( //we only show this when a hotel is selected
+                            <View
+                                style={{
+                                    position: "absolute",
+                                    bottom: 30,
+                                    left: 0,
+                                    right: 0,
+                                    padding: SIZES.radius
+                                }}
+                            >
+                                <Text style={{ color: Colors.black, ...FONTS.h1 }}>{`Hotel in ${selectedPlace?.name}`}</Text>
+                                <View 
+                                    style={{
+                                        flexDirection: "row",
+                                        marginTop: SIZES.radius,
+                                        padding: SIZES.radius,
+                                        borderRadius: 15,
+                                        backgroundColor: Colors.transparentBlack1
+                                    }}
+                                >
+                                    {/* The Hotel Image */}
+                                    <Image source={selectedHotel?.image} resizeMode="cover" style={{ width: 90, height: 120, borderRadius: 15 }}/>
+
+                                    <View style={{ flex: 1, marginLeft: SIZES.radius, justifyContent: "center", }}>
+                                        {/* The Hotel Name */}
+                                        <Text style={{ color: Colors.white, ...FONTS.h3 }}>{selectedHotel?.name}</Text> 
+                                        {/* Ratings */}
+                                        <Rating containerStyle={{ marginTop: SIZES.base, }} rate={selectedHotel?.rate}/> 
+                                        <View style={{ flexDirection: "row", marginTop: SIZES.base }}>
+                                            <TextButton
+                                                label="Details"
+                                                customContainerStyle={{
+                                                    marginTop: SIZES.base,
+                                                    height: 45,
+                                                    width: 100,
+                                                }}
+                                                customLabelStyle={{ ...FONTS.h3 }}
+                                                onPress={() => console.log("Details")}
+                                            />
+                                            {/** Hotel price */}
+                                            <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "center",}}>
+                                                <Text 
+                                                    style={{ 
+
+                                                        color: Colors.white, 
+                                                        fontSize: Platform.OS === "ios" ? SIZES.body4 : SIZES.body5,
+                                                        ...FONTS.body5,
+                                                    }}
+                                                >{`from $ ${selectedHotel?.price} / night`}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                </View>
+                            </View>
+                        )}
                     </View>
                 </View>
             </SlidingUpPanel>

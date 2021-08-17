@@ -5,7 +5,7 @@ import {
 }  from "react-native"
 import { Colors, FONTS, SIZES } from "../values"
 
-export function TextButton({ label, customContainerStyle, customLabelStyle, onPress, handleExploreButtonPress }){
+export function TextButton({ label, customContainerStyle, customLabelStyle, onPress }){
     return (
         <TouchableOpacity
             style={{
