@@ -1,18 +1,25 @@
 import React from "react"
 import { createStackNavigator } from "@react-navigation/stack"
-import { MainScreen, MainScreenOptions } from "../screens"
+import TabNav from "./tabs"
+import { PlaceScreen } from "../screens"
 import { Strings } from "../values"
 
 const Stack = createStackNavigator()
 const MainNavigator = () => (
   <Stack.Navigator 
-    initialRouteName={Strings.component_main}
+    initialRouteName={Strings.screen_main}
+    screenOptions={{
+      headerShown: false
+    }}
   >
     <Stack.Screen
-      name={Strings.component_main}
-      component={MainScreen}
-      options={MainScreenOptions}
-  />
+      name={Strings.screen_main}
+      component={TabNav}
+    />
+    <Stack.Screen
+      name={Strings.screen_place}
+      component={PlaceScreen}
+    />
   </Stack.Navigator>
 )
 
