@@ -6,6 +6,7 @@ import {
     ImageBackground,
     Image,
     Platform,
+    Animated,
 } from "react-native"
 import SlidingUpPanel from "rn-sliding-up-panel"
 import MapView, { PROVIDER_GOOGLE, Marker } from "react-native-maps"
@@ -16,11 +17,29 @@ import { Colors, SIZES, FONTS, } from "../values"
 export function PlaceScreen({ route, navigation }){
     const  [selectedPlace, setSelectedPlace] = useState(null)
     const [selectedHotel, setSelectedHotel] = useState(null)
+    const [allowDragging, setAllowDragging] = useState(true)
     const _panel = useRef() //enables us to control the slidingUp panel programmatically
+
+    /** NICE TO DO
+    * Might as well implemented the SlidingUp panel in reanimated2.
+     * https://www.youtube.com/watch?v=Xp0q8ZDOeyE
+    */
+    const _draggedValue = useRef(new Animated.Value(0)).current
 
     useEffect(() => {
         let { selectedPlace } = route.params
         setSelectedPlace(selectedPlace)
+
+        //Listener that will disable the panel dragging whenever the MapView is shown
+        const listenerId = _draggedValue.addListener(valueObj => {
+            //if the MapView is currently showing
+            if(valueObj.value > SIZES.height){
+                setAllowDragging(false)
+            }
+        })
+        return () => {
+            _draggedValue.removeAllListeners(listenerId)
+        }
     }, [])
 
     function renderPlace(){
@@ -87,11 +106,17 @@ export function PlaceScreen({ route, navigation }){
         return (
             <SlidingUpPanel
                 ref={_panel}
+                allowDragging={allowDragging}
+                animatedValue={_draggedValue}
                 draggableRange={{ top: SIZES.height + 120, bottom: 120 }}
                 showBackdrop={false}
                 snappingPoints={[SIZES.height + 120]}
                 height={SIZES.height + 120}
                 friction={0.7}
+                onBottomReached={() => {
+                    //when we reach the bottom of the panel we set allowDragging to true
+                    setAllowDragging(true)
+                }}
             >
                 <View style={{ flex: 1, backgroundColor: "transparent" }} >
                     {/* Panel Header */}

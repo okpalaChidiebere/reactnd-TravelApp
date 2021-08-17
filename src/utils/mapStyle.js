@@ -7,7 +7,7 @@
  * Once you are done styling, click the "finish" button and download the json file
  * That it!
  * 
- * FYI: For expo, this works only in prod. Read more:
+ * FYI: For expo, I tested the style for expoClient in android during developement and it worked. It did not work in ios Emulator in dev. But for sure it works in Prod
  * https://forums.expo.dev/t/react-native-maps-not-working-on-expo-app-for-android/35617
  * https://stackoverflow.com/questions/46098728/how-to-customize-style-mapview-in-expo-on-ios-and-android
  * https://docs.expo.dev/versions/v42.0.0/sdk/map-view/
