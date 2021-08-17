@@ -14,7 +14,7 @@ import { Colors, FONTS, SIZES } from "../values"
 
 const PLACES_ITEM_SIZE = Platform.OS === "ios" ? SIZES.width/1.25 :  SIZES.width/1.2
 
-export function PlacesListItem({ animation, indexPosition, item }){
+export function PlacesListItem({ animation, indexPosition, item, handleExploreButtonPress }){
     
 
     const placeItemContainerAnimatedStyle = useAnimatedStyle(() => {
@@ -101,6 +101,7 @@ export function PlacesListItem({ animation, indexPosition, item }){
                         width: 150,
                         bottom: -20,
                     }}
+                    onPress={handleExploreButtonPress}
                 />
             </View>
         </Animated.View>

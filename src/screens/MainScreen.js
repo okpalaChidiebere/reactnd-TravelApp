@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useCallback } from "react"
 import { 
   Text, 
   View, 
@@ -33,6 +33,13 @@ export function MainScreen({ navigation }){
   //we want to capture the scrollPosition for Places flatlist as well
   const placesScrollX = useSharedValue(0)
 
+  /**
+   * Whenever we click on the explore button we want to capture the current index of 
+   * the place for a country the user selected so that we can navigate to the placeDetail
+   *  screen accordingly
+   */
+  const [placesScrollPosition, setPlacesScrollPosition] = useState(0)
+
   /** 
    * React State for our Country list
    * 
@@ -55,6 +62,15 @@ export function MainScreen({ navigation }){
     ...dummyData.countries[0].places,
     { id: -2 } //postpend an empty object
   ])
+
+  const handleExploreButtonPress = useCallback(() => {
+    //Get the index of the place selected
+    const currIndex = parseInt(placesScrollPosition, 10) + 1
+    //console.log(places[currIndex])
+
+    //navigate to the Place Screen
+    navigation.navigate(Strings.screen_place, { selectedPlace: places[currIndex] })
+  })
 
   function renderHeader(){
     return (
@@ -126,7 +142,11 @@ export function MainScreen({ navigation }){
           countryScrollX.value = e.contentOffset.x
         })}
         onMomentumScrollEnd={(event) => {
-          /** we calculate the scroll ending position in here which helps us get 
+          /**
+           * Whenever we scroll through the country we need to change the places accordingly
+           * as well 
+           * 
+           * we calculate the scroll ending position in here which helps us get 
            * the position(the current Index the user scrolled to) of the FlatList when the user is done scrolling
            * */
           const position = (event.nativeEvent.contentOffset.x / COUNTRIES_ITEM_SIZE).toFixed(0)
@@ -176,6 +196,13 @@ export function MainScreen({ navigation }){
         onScroll={useAnimatedScrollHandler((e) => {
           placesScrollX.value = e.contentOffset.x
         })}
+        onMomentumScrollEnd={(event) => {
+          //Calculate position
+          const position = (event.nativeEvent.contentOffset.x / PLACES_ITEM_SIZE).toFixed(0)
+
+          //Set place position
+          setPlacesScrollPosition(position)
+        }}
         renderItem={({ item, index }) => {
           //If it the first or last item
           return (
@@ -188,7 +215,7 @@ export function MainScreen({ navigation }){
                 }}
               />
             )
-          : <PlacesListItem item={item} animation={placesScrollX} indexPosition={index}/>
+          : <PlacesListItem item={item} animation={placesScrollX} indexPosition={index} handleExploreButtonPress={handleExploreButtonPress}/>
           )
         }}
       />
