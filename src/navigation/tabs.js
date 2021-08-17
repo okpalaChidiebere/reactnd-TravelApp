@@ -15,6 +15,7 @@ const TabNav = () => (
     <Tab.Navigator
         initialRouteName={Strings.screen_tab_main}
         screenOptions={({ route }) => ({
+            headerShown: false,
             tabBarShowLabel: false,
             tabBarStyle: {
                 position: 'absolute',

@@ -5,29 +5,79 @@ import {
   StyleSheet, 
   Platform, 
   TouchableOpacity,
+  Image,
 }  from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { Colors, Strings } from "../values"
+import { icons, images } from "../utils"
+import { Colors, Strings, SIZES, FONTS,  } from "../values"
 
 export function MainScreen({ navigation }){
 
-  return (
-    <SafeAreaView style={styles.container} edges={["left", "right"]}>
-      <View style={[styles.content, styles.center]}>
-        <Text>Open MainScreen.js to start working on your app!</Text>
+  function renderHeader(){
+    return (
+      <View
+        style={{
+          alignItems: "center",
+          flexDirection: "row",
+          paddingHorizontal: SIZES.padding,
+          paddingVertical: SIZES.base,
+        }}
+      >
+        {/* Side Drawer */}
         <TouchableOpacity
-          onPress={() => navigation.navigate(Strings.screen_place)}
+          style={[
+            styles.center,
+            {
+              width: 45, height: 45,
+            }
+          ]}
+          onPress={() => console.log("Side Drawer")}
         >
-          <Text>Navigate to Place</Text>
+          <Image 
+            source={icons.side_drawer}
+            resizeMode="contain"
+            style={{
+              width: 25,
+              height: 25,
+              tintColor: Colors.white,
+            }}
+          />
         </TouchableOpacity>
+
+        {/* Label/Title */}
+        <View style={[{ flex: 1}, styles.center]}>
+          <Text style={{ color: Colors.white, ...FONTS.h3 }}>ASIA</Text>
+        </View>
+
+        {/* Profile */}
+        <TouchableOpacity
+          onPress={() => console.log("Profile")}
+        >
+          <Image 
+            source={images.profile_pic}
+            style={{
+              width: 45,
+              height: 45,
+              borderRadius: 30,
+            }}
+          />
+        </TouchableOpacity>
+
       </View>
+    )
+  }
+
+  return (
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+      {renderHeader()}
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-      flex: 1
+      flex: 1,
+      backgroundColor: Colors.black,
   },
   content: Platform.select({
     ios: {
