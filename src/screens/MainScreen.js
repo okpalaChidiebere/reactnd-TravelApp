@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { 
   Text, 
   View, 
@@ -6,12 +6,38 @@ import {
   Platform, 
   TouchableOpacity,
   Image,
+  ScrollView,
+  FlatList,
 }  from "react-native"
+import Animated, {
+  useAnimatedScrollHandler, 
+  useSharedValue, 
+} from "react-native-reanimated"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { icons, images } from "../utils"
-import { Colors, Strings, SIZES, FONTS,  } from "../values"
+import { CountryListItem } from "../components"
+import { icons, images, dummyData } from "../utils"
+import { Colors, Strings, SIZES, FONTS, } from "../values"
+
+const COUNTRIES_ITEM_SIZE = SIZES.width/3 //define the size of each country listItem
+
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList)
+
 
 export function MainScreen({ navigation }){
+
+  /** We want to keep track of the animated value of the contry flatlist scroll position */
+  const countryScrollX = useSharedValue(0)
+
+  /** 
+   * React State for our Country list
+   * 
+   * We want the list of selected country to always be in the middle, we need to 
+   * prepend and postpend empty objects this react state hook  */
+  const [countries, setCountries] = useState([
+    { id: -1 }, //prepend an empty object
+    ...dummyData.countries,
+    { id: -2 } //postpend an empty object
+  ])
 
   function renderHeader(){
     return (
@@ -67,9 +93,59 @@ export function MainScreen({ navigation }){
     )
   }
 
+  function renderCountries(){
+    return(
+      <AnimatedFlatList
+        horizontal
+        pagingEnabled
+        snapToAlignment="center"
+        snapToInterval={COUNTRIES_ITEM_SIZE}
+        showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        decelerationRate={0}
+        data={countries}
+        keyExtractor={item => `${item.id}`}
+        onScroll={useAnimatedScrollHandler((e) => {
+          countryScrollX.value = e.contentOffset.x
+        })}
+        renderItem={({ item, index }) => {
+          //If it the first or last item
+          return (
+            index === 0 || index === countries.length - 1
+            //we return an empty view
+          ? (
+              <View 
+                style={{
+                  width: COUNTRIES_ITEM_SIZE
+                }}
+              />
+            )
+          : <CountryListItem item={item} animation={countryScrollX} indexPosition={index}/>
+          )
+        }}
+      />
+    )
+  }
+
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom", "left", "right"]}>
       {renderHeader()}
+
+      <ScrollView 
+        /*contentContainerStyle={{ 
+          paddingBottom: Platform.OS === "ios" ? 40 : 0 //we dont
+        }}*/
+      >
+        <View style={{ height: 700 }}>
+          {/* Contries */}
+          <View>
+            {renderCountries()}
+          </View>
+
+          {/* Places */}
+
+        </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
