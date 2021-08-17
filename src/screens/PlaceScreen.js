@@ -14,6 +14,7 @@ import { Colors, SIZES, FONTS, } from "../values"
 
 export function PlaceScreen({ route, navigation }){
     const  [selectedPlace, setSelectedPlace] = useState(null)
+    const [selectedHotel, setSelectedHotel] = useState(null)
     const _panel = useRef() //enables us to control the slidingUp panel programmatically
 
     useEffect(() => {
@@ -140,8 +141,12 @@ export function PlaceScreen({ route, navigation }){
                                     key={index}
                                     coordinate={hotel.latlng} //we renders the marker(s) in our map according to our given coordinates
                                     identifier={hotel.id}
+                                    onPress={() => setSelectedHotel(hotel)}
                                 >
-                                    <Image source={icons.bed_off} resizeMode="contain" style={{ width: 50, height: 50 }}/>
+                                    <Image 
+                                        source={selectedHotel?.id === hotel.id ? icons.bed_on : icons.bed_off} 
+                                        resizeMode="contain" style={{ width: 50, height: 50 }}
+                                    />
                                 </Marker>
                             ))}
                         </MapView>
