@@ -43,8 +43,8 @@ export function HeaderBar({ title, leftOnPress, right, containerStyle }){
             </View>
 
             {/* Titile */}
-            <View style={{ flex: 1, alignItems: "flex-start", justifyContent: "center" }}>
-                <Text style={{ color: Colors.white, ...FONTS.h3, }}>{title}</Text>
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ color: Colors.black, ...FONTS.h3 }}>{title}</Text>
             </View>
 
             {/* Settings */}

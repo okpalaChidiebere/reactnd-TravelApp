@@ -150,6 +150,17 @@ export function PlaceScreen({ route, navigation }){
                                 </Marker>
                             ))}
                         </MapView>
+
+                        {/* Header Bar */}
+                        <HeaderBar 
+                            title={selectedPlace?.name}
+                            leftOnPress={() => _panel.current.hide()} /**we want to hide the panel when the backIcon in the header is pressed */
+                            right={true}
+                            containerStyle={{
+                                position: "absolute",
+                                top: SIZES.padding * 2,
+                            }}
+                        />
                     </View>
                 </View>
             </SlidingUpPanel>
