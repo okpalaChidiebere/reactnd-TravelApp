@@ -125,6 +125,19 @@ export function MainScreen({ navigation }){
         onScroll={useAnimatedScrollHandler((e) => {
           countryScrollX.value = e.contentOffset.x
         })}
+        onMomentumScrollEnd={(event) => {
+          /** we calculate the scroll ending position in here which helps us get 
+           * the position(the current Index the user scrolled to) of the FlatList when the user is done scrolling
+           * */
+          const position = (event.nativeEvent.contentOffset.x / COUNTRIES_ITEM_SIZE).toFixed(0)
+
+          //we can now set the place now we have gotten the position
+          setPlaces([
+            { id: -1 }, //prepend an empty object
+            ...dummyData.countries[position].places,
+            { id: -2 } //postpend an empty object
+          ])
+        }}
         renderItem={({ item, index }) => {
           //If it the first or last item
           return (
