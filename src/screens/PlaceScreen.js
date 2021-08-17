@@ -4,11 +4,12 @@ import {
     View,
     Text,
     ImageBackground,
-    Image
+    Image,
 } from "react-native"
 import SlidingUpPanel from "rn-sliding-up-panel"
+import MapView, { PROVIDER_GOOGLE, Marker } from "react-native-maps"
 import { HeaderBar, TextIconButton } from "../components"
-import { icons } from "../utils"
+import { icons, mapStyle } from "../utils"
 import { Colors, SIZES, FONTS, } from "../values"
 
 export function PlaceScreen({ route, navigation }){
@@ -105,6 +106,46 @@ export function PlaceScreen({ route, navigation }){
                     </View>
 
                     {/* Panel Details - which is the Map */}
+                    <View
+                        style={{
+                            flex: 1,
+                            backgroundColor: Colors.white,
+                            justifyContent: "center",
+                            alignItems: "center",
+                        }}
+                    >
+                        {/*
+                            Learn more customizations for you maps here https://www.youtube.com/watch?v=qlELLikT3FU
+                            
+                            FYI: https://docs.expo.dev/versions/v42.0.0/sdk/map-view/ no exta configurations is needed when you run with Expo
+                            as stated here
+                            https://www.reddit.com/r/reactnative/comments/gwegag/does_reactnativemaps_require_api_key/
+                            But dont expect to use the customMapStyle and maybe other features that need API key.
+                            They will only work when you build this expo project with  with `expo build:ios or expo build:android`
+
+                            https://www.byprogrammers.com/2020/11/how-to-generate-google-maps-api-key-for-mobile-app/
+
+                        */}
+                        <MapView
+                            /*provider={PROVIDER_GOOGLE} //will uncomment for expo build apk*/
+                            style={{
+                                width: "100%",
+                                height: "100%",
+                            }}
+                            customMapStyle={mapStyle}
+                            initialRegion={selectedPlace?.mapInitialRegion}
+                        >
+                            {selectedPlace?.hotels.map((hotel, index) => (
+                                <Marker 
+                                    key={index}
+                                    coordinate={hotel.latlng} //we renders the marker(s) in our map according to our given coordinates
+                                    identifier={hotel.id}
+                                >
+                                    <Image source={icons.bed_off} resizeMode="contain" style={{ width: 50, height: 50 }}/>
+                                </Marker>
+                            ))}
+                        </MapView>
+                    </View>
                 </View>
             </SlidingUpPanel>
         )
