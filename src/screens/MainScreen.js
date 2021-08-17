@@ -14,11 +14,13 @@ import Animated, {
   useSharedValue, 
 } from "react-native-reanimated"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { CountryListItem } from "../components"
+import { CountryListItem, PlacesListItem } from "../components"
 import { icons, images, dummyData } from "../utils"
 import { Colors, Strings, SIZES, FONTS, } from "../values"
 
 const COUNTRIES_ITEM_SIZE = SIZES.width/3 //define the size of each country listItem
+const PLACES_ITEM_SIZE = Platform.OS === "ios" ? SIZES.width/1.25 :  SIZES.width/1.2
+const EMPTY_ITEM_SIZE = (SIZES.width - PLACES_ITEM_SIZE) / 2 //the width for the two item empty item at the begining and end of the Places Flatlist. Its thesame to what we did for countries flatlist as well
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList)
 
@@ -28,6 +30,9 @@ export function MainScreen({ navigation }){
   /** We want to keep track of the animated value of the contry flatlist scroll position */
   const countryScrollX = useSharedValue(0)
 
+  //we want to capture the scrollPosition for Places flatlist as well
+  const placesScrollX = useSharedValue(0)
+
   /** 
    * React State for our Country list
    * 
@@ -36,6 +41,18 @@ export function MainScreen({ navigation }){
   const [countries, setCountries] = useState([
     { id: -1 }, //prepend an empty object
     ...dummyData.countries,
+    { id: -2 } //postpend an empty object
+  ])
+
+  /**
+   * 
+   * Initialize our list of Places
+   * 
+   * We want our selected Places to always be in the middle
+   */
+  const [places, setPlaces] = useState([
+    { id: -1 }, //prepend an empty object
+    ...dummyData.countries[0].places,
     { id: -2 } //postpend an empty object
   ])
 
@@ -127,15 +144,49 @@ export function MainScreen({ navigation }){
     )
   }
 
+  function renderPlaces(){
+    return (
+      <AnimatedFlatList 
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        data={places}
+        keyExtractor={item => `${item.id}`}
+        contentContainerStyle={{
+          alignItems: "center"
+        }}
+        snapToAlignment="center"
+        snapToInterval={Platform.OS === "ios" ? PLACES_ITEM_SIZE + 28 : PLACES_ITEM_SIZE}
+        scrollEventThrottle={16}
+        decelerationRate={0}
+        bounces={false}
+        onScroll={useAnimatedScrollHandler((e) => {
+          placesScrollX.value = e.contentOffset.x
+        })}
+        renderItem={({ item, index }) => {
+          //If it the first or last item
+          return (
+            index === 0 || index === countries.length - 1
+            //we return an empty view
+          ? (
+              <View 
+                style={{
+                  width: EMPTY_ITEM_SIZE
+                }}
+              />
+            )
+          : <PlacesListItem item={item} animation={placesScrollX} indexPosition={index}/>
+          )
+        }}
+      />
+    )
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom", "left", "right"]}>
       {renderHeader()}
 
-      <ScrollView 
-        /*contentContainerStyle={{ 
-          paddingBottom: Platform.OS === "ios" ? 40 : 0 //we dont
-        }}*/
-      >
+      <ScrollView>
         <View style={{ height: 700 }}>
           {/* Contries */}
           <View>
@@ -143,7 +194,9 @@ export function MainScreen({ navigation }){
           </View>
 
           {/* Places */}
-
+          <View style={{ height: Platform.OS === "ios" ? 500 : 450 }}>
+            {renderPlaces()}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
