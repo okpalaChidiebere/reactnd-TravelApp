@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react"
+import React, { useEffect, useState, useLayoutEffect } from "react"
 import { StatusBar } from "expo-status-bar"
 import {
     View,
@@ -6,40 +6,80 @@ import {
     ImageBackground,
     Image,
     Platform,
-    Animated,
+    StyleSheet,
 } from "react-native"
-import SlidingUpPanel from "rn-sliding-up-panel"
+import Animated, { 
+    useSharedValue, 
+    useAnimatedGestureHandler,
+    useAnimatedStyle, 
+    withSpring,
+    withSequence,
+    withTiming,
+} from "react-native-reanimated"
+import { PanGestureHandler } from "react-native-gesture-handler"
 import MapView, { PROVIDER_GOOGLE, Marker } from "react-native-maps"
 import { HeaderBar, TextIconButton, Rating, TextButton } from "../components"
 import { icons, mapStyle } from "../utils"
 import { Colors, SIZES, FONTS, } from "../values"
 
+const PANEL_HEADER_HEIGHT = 120
+const SPRING_CONFIG = {
+    damping: 80,
+    overshootClamping: true,
+    restDisplacementThreshold: 0.1,
+    restSpeedThreshold: 0.1,
+    stiffness: 500
+}
 export function PlaceScreen({ route, navigation }){
+    const slidingPanelOffset = useSharedValue(SIZES.height - PANEL_HEADER_HEIGHT)
     const  [selectedPlace, setSelectedPlace] = useState(null)
     const [selectedHotel, setSelectedHotel] = useState(null)
-    const [allowDragging, setAllowDragging] = useState(true)
-    const _panel = useRef() //enables us to control the slidingUp panel programmatically
 
-    /** NICE TO DO
-    * Might as well implemented the SlidingUp panel in reanimated2.
+    /** 
+     * Implemented the SlidingUp panel in reanimated2.
      * https://www.youtube.com/watch?v=Xp0q8ZDOeyE
+     * 
+    * When touching the sliding panel, it should go up and down in correspondence 
+    * to our touch but also dismiss the sheet if we swipe down
     */
-    const _draggedValue = useRef(new Animated.Value(0)).current
+    const slidingPanelGestureHandler = useAnimatedGestureHandler({
+        onStart(_, context){
+            //FYI: any propery we add to the context becomes available throughout our gesture events
+            context.startTop = slidingPanelOffset.value
+        },
+        onActive(event, context){
+            slidingPanelOffset.value = context.startTop + event.translationY
+        },
+        onEnd(event){
+            /**
+             * As the touch ends, we want to check if the panel to be dismissed or not
+             */
+            const shouldBeOpened = event.translationY < (PANEL_HEADER_HEIGHT / 6) * -1 //NOTE: we multiplied by -1 because sliding from the bottom along y are negatives
+            if(shouldBeOpened){ //We check to see if the touch distance is (PANEL_HEADER_HEIGHT/6) value in pixels past its initital position
+                slidingPanelOffset.value = - PANEL_HEADER_HEIGHT
+            }else{
+                slidingPanelOffset.value = SIZES.height - PANEL_HEADER_HEIGHT
+            }
+        },
+    })
+
+    const animatedSlidingPanelStyle = useAnimatedStyle(() => {
+        return {
+            top: withSpring(slidingPanelOffset.value, SPRING_CONFIG),
+        }
+    })
 
     useEffect(() => {
         let { selectedPlace } = route.params
         setSelectedPlace(selectedPlace)
+    }, [])
 
-        //Listener that will disable the panel dragging whenever the MapView is shown
-        const listenerId = _draggedValue.addListener(valueObj => {
-            //if the MapView is currently showing
-            if(valueObj.value > SIZES.height){
-                setAllowDragging(false)
-            }
-        })
-        return () => {
-            _draggedValue.removeAllListeners(listenerId)
-        }
+    useLayoutEffect(() => {
+        // a little instructive motion
+        slidingPanelOffset.value = withSequence(
+            withTiming(SIZES.height - (PANEL_HEADER_HEIGHT + 20)), 
+            withTiming(SIZES.height - PANEL_HEADER_HEIGHT)
+        )
     }, [])
 
     function renderPlace(){
@@ -104,21 +144,13 @@ export function PlaceScreen({ route, navigation }){
 
     function renderMap(){
         return (
-            <SlidingUpPanel
-                ref={_panel}
-                allowDragging={allowDragging}
-                animatedValue={_draggedValue}
-                draggableRange={{ top: SIZES.height + 120, bottom: 120 }}
-                showBackdrop={false}
-                snappingPoints={[SIZES.height + 120]}
-                height={SIZES.height + 120}
-                friction={0.7}
-                onBottomReached={() => {
-                    //when we reach the bottom of the panel we set allowDragging to true
-                    setAllowDragging(true)
-                }}
-            >
-                <View style={{ flex: 1, backgroundColor: "transparent" }} >
+            <PanGestureHandler onGestureEvent={slidingPanelGestureHandler}>
+                <Animated.View
+                    style={[
+                        styles.slidingPanel,
+                        animatedSlidingPanelStyle,
+                    ]}        
+                >
                     {/* Panel Header */}
                     <View
                         style={{
@@ -141,18 +173,6 @@ export function PlaceScreen({ route, navigation }){
                             alignItems: "center",
                         }}
                     >
-                        {/*
-                            Learn more customizations for you maps here https://www.youtube.com/watch?v=qlELLikT3FU
-                            
-                            FYI: https://docs.expo.dev/versions/v42.0.0/sdk/map-view/ no exta configurations is needed when you run with Expo
-                            as stated here
-                            https://www.reddit.com/r/reactnative/comments/gwegag/does_reactnativemaps_require_api_key/
-                            But dont expect to use the customMapStyle and maybe other features that need API key.
-                            They will only work when you build this expo project with  with `expo build:ios or expo build:android`
-
-                            https://www.byprogrammers.com/2020/11/how-to-generate-google-maps-api-key-for-mobile-app/
-
-                        */}
                         <MapView
                             /*provider={PROVIDER_GOOGLE} //will uncomment for expo build apk*/
                             style={{
@@ -180,7 +200,7 @@ export function PlaceScreen({ route, navigation }){
                         {/* Header Bar */}
                         <HeaderBar 
                             title={selectedPlace?.name}
-                            leftOnPress={() => _panel.current.hide()} /**we want to hide the panel when the backIcon in the header is pressed */
+                            leftOnPress={() => slidingPanelOffset.value = SIZES.height - PANEL_HEADER_HEIGHT} /**we want to hide the panel when the backIcon in the header is pressed */
                             right={true}
                             containerStyle={{
                                 position: "absolute",
@@ -245,8 +265,8 @@ export function PlaceScreen({ route, navigation }){
                             </View>
                         )}
                     </View>
-                </View>
-            </SlidingUpPanel>
+                </Animated.View>
+            </PanGestureHandler>
         )
     }
 
@@ -257,3 +277,14 @@ export function PlaceScreen({ route, navigation }){
        </View>
     )
 }
+
+const styles = StyleSheet.create({
+    slidingPanel: {
+        backgroundColor: "transparent",
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        height: SIZES.height + PANEL_HEADER_HEIGHT
+    }
+})
